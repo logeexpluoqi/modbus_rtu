@@ -1,7 +1,7 @@
 /**
  * Author: luoqi
  * Created Date: 2026-01-20 15:37:54
- * Last Modified: 2026-01-22 17:07:36
+ * Last Modified: 2026-01-22 18:42:43
  * Modified By: luoqi at <**@****>
  * Copyright (c) 2026 <*****>
  * Description:
@@ -17,7 +17,13 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
+#ifndef MBSRTU_BUFSZ_LOWER_LIMIT
 #define MBSRTU_BUFSZ_LOWER_LIMIT (8)
+#endif
+
+#ifndef MBSRTU_CACHE_SZ
+#define MBSRTU_CACHE_SZ (260)
+#endif
 
 typedef enum {
     MBSFC_RD_COILS          = 0x01, // read coils
@@ -57,6 +63,7 @@ typedef struct {
     uint8_t *buf;       // modbus rtu buffer
     size_t bufsz;       // modbus rtu buffer size
     size_t timeout;     // modbus rtu send or recv function timeout
+    uint8_t cache[MBSRTU_CACHE_SZ]; // modbus rtu cache
     MbsEC err;          // modbus rtu error code
 } MbsRtu;
 

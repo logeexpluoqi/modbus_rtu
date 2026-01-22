@@ -1,7 +1,7 @@
 /**
  * Author: luoqi
  * Created Date: 2026-01-20 15:37:44
- * Last Modified: 2026-01-22 17:15:15
+ * Last Modified: 2026-01-22 18:46:52
  * Modified By: luoqi at <**@****>
  * Copyright (c) 2026 <*****>
  * Description:
@@ -131,22 +131,21 @@ MbsEC mbsrtu_read_coil(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t coils, 
     if((size_t)(resp_sz + 4) > rtu->bufsz) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    uint8_t tmp[260];
-    if(resp_sz > (int)sizeof(tmp)) {
+    if(resp_sz > MBSRTU_CACHE_SZ) {
         return MBS_ERR_BUF_OVERFLOW;
     }
     size_t old_to = rtu->timeout;
     rtu->timeout = timeout;
-    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_COILS, req, 4, tmp, resp_sz);
+    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_COILS, req, 4, rtu->cache, resp_sz);
     rtu->timeout = old_to;
     if(err != MBS_ERR_OK) {
         return err;
     }
-    /* tmp[0] is byte count */
-    if(tmp[0] != (uint8_t)resp_bytes) {
+    /* rtu->cache[0] is byte count */
+    if(rtu->cache[0] != (uint8_t)resp_bytes) {
         return MBS_ERR_SLAVE_FAULT;
     }
-    memcpy(data, &tmp[1], resp_bytes);
+    memcpy(data, &rtu->cache[1], resp_bytes);
     return MBS_ERR_OK;
 }
 
@@ -165,22 +164,21 @@ MbsEC mbsrtu_read_disc_input(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t i
     if((size_t)(resp_sz + 4) > rtu->bufsz) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    uint8_t tmp[260];
-    if(resp_sz > (int)sizeof(tmp)) {
+    if(resp_sz > MBSRTU_CACHE_SZ) {
         return MBS_ERR_BUF_OVERFLOW;
     }
     size_t old_to = rtu->timeout;
     rtu->timeout = timeout;
-    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_DISC_INPUTS, req, 4, tmp, resp_sz);
+    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_DISC_INPUTS, req, 4, rtu->cache, resp_sz);
     rtu->timeout = old_to;
     if(err != MBS_ERR_OK) {
         return err;
     }
-    /* tmp[0] is byte count */
-    if(tmp[0] != (uint8_t)resp_bytes) {
+    /* rtu->cache[0] is byte count */
+    if(rtu->cache[0] != (uint8_t)resp_bytes) {
         return MBS_ERR_SLAVE_FAULT;
     }
-    memcpy(data, &tmp[1], resp_bytes);
+    memcpy(data, &rtu->cache[1], resp_bytes);
     return MBS_ERR_OK;
 }
 
@@ -198,23 +196,22 @@ MbsEC mbsrtu_read_hold_reg(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t reg
     if((size_t)(resp_sz + 4) > rtu->bufsz) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    uint8_t tmp[512];
-    if(resp_sz > (int)sizeof(tmp)) {
+    if(resp_sz > MBSRTU_CACHE_SZ) {
         return MBS_ERR_BUF_OVERFLOW;
     }
     size_t old_to = rtu->timeout;
     rtu->timeout = timeout;
-    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_HOLD_REG, req, 4, tmp, resp_sz);
+    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_HOLD_REG, req, 4, rtu->cache, resp_sz);
     rtu->timeout = old_to;
     if(err != MBS_ERR_OK) {
         return err;
     }
-    /* tmp[0] is byte count */
-    if(tmp[0] != (uint8_t)(regs * 2)) {
+    /* rtu->cache[0] is byte count */
+    if(rtu->cache[0] != (uint8_t)(regs * 2)) {
         return MBS_ERR_SLAVE_FAULT;
     }
     for(uint16_t i = 0; i < regs; ++i) {
-        data[i] = (uint16_t)tmp[1 + i * 2] << 8 | (uint16_t)tmp[1 + i * 2 + 1];
+        data[i] = (uint16_t)rtu->cache[1 + i * 2] << 8 | (uint16_t)rtu->cache[1 + i * 2 + 1];
     }
     return MBS_ERR_OK;
 }
@@ -233,23 +230,22 @@ MbsEC mbsrtu_read_input_reg(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t re
     if((size_t)(resp_sz + 4) > rtu->bufsz) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    uint8_t tmp[512];
-    if(resp_sz > (int)sizeof(tmp)) {
+    if(resp_sz > MBSRTU_CACHE_SZ) {
         return MBS_ERR_BUF_OVERFLOW;
     }
     size_t old_to = rtu->timeout;
     rtu->timeout = timeout;
-    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_INPUT_REG, req, 4, tmp, resp_sz);
+    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RD_INPUT_REG, req, 4, rtu->cache, resp_sz);
     rtu->timeout = old_to;
     if(err != MBS_ERR_OK) {
         return err;
     }
-    /* tmp[0] is byte count */
-    if(tmp[0] != (uint8_t)(regs * 2)) {
+    /* rtu->cache[0] is byte count */
+    if(rtu->cache[0] != (uint8_t)(regs * 2)) {
         return MBS_ERR_SLAVE_FAULT;
     }
     for(uint16_t i = 0; i < regs; ++i) {
-        data[i] = (uint16_t)tmp[1 + i * 2] << 8 | (uint16_t)tmp[1 + i * 2 + 1];
+        data[i] = (uint16_t)rtu->cache[1 + i * 2] << 8 | (uint16_t)rtu->cache[1 + i * 2 + 1];
     }
     return MBS_ERR_OK;
 }
@@ -279,23 +275,22 @@ MbsEC mbsrtu_read_write_regs(MbsRtu *rtu, uint8_t dev, uint16_t read_addr, uint1
     if((size_t)(req_sz + 4) > rtu->bufsz) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    uint8_t tmp[512];
-    if(req_sz > (int)sizeof(tmp)) {
+    if(req_sz > MBSRTU_CACHE_SZ) {
         return MBS_ERR_BUF_OVERFLOW;
     }
-    tmp[0] = (uint8_t)(read_addr >> 8);
-    tmp[1] = (uint8_t)(read_addr & 0xff);
-    tmp[2] = (uint8_t)(read_regs >> 8);
-    tmp[3] = (uint8_t)(read_regs & 0xff);
-    tmp[4] = (uint8_t)(write_addr >> 8);
-    tmp[5] = (uint8_t)(write_addr & 0xff);
-    tmp[6] = (uint8_t)(write_regs >> 8);
-    tmp[7] = (uint8_t)(write_regs & 0xff);
-    tmp[8] = write_bytes;
+    rtu->cache[0] = (uint8_t)(read_addr >> 8);
+    rtu->cache[1] = (uint8_t)(read_addr & 0xff);
+    rtu->cache[2] = (uint8_t)(read_regs >> 8);
+    rtu->cache[3] = (uint8_t)(read_regs & 0xff);
+    rtu->cache[4] = (uint8_t)(write_addr >> 8);
+    rtu->cache[5] = (uint8_t)(write_addr & 0xff);
+    rtu->cache[6] = (uint8_t)(write_regs >> 8);
+    rtu->cache[7] = (uint8_t)(write_regs & 0xff);
+    rtu->cache[8] = write_bytes;
     /* write_data is uint16_t array (registers) */
     for(uint16_t i = 0; i < write_regs; ++i) {
-        tmp[9 + i * 2] = (uint8_t)(write_data[i] >> 8);
-        tmp[9 + i * 2 + 1] = (uint8_t)(write_data[i] & 0xff);
+        rtu->cache[9 + i * 2] = (uint8_t)(write_data[i] >> 8);
+        rtu->cache[9 + i * 2 + 1] = (uint8_t)(write_data[i] & 0xff);
     }
     uint16_t resp_sz = 1 + read_regs * 2;
     if((size_t)(resp_sz + 4) > rtu->bufsz) {
@@ -304,7 +299,7 @@ MbsEC mbsrtu_read_write_regs(MbsRtu *rtu, uint8_t dev, uint16_t read_addr, uint1
     uint8_t resp[512];
     size_t old_to = rtu->timeout;
     rtu->timeout = timeout;
-    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RDWR_MUL_REG, tmp, req_sz, resp, resp_sz);
+    MbsEC err = mbsrtu_ll_read(rtu, dev, MBSFC_RDWR_MUL_REG, rtu->cache, req_sz, resp, resp_sz);
     rtu->timeout = old_to;
     if(err != MBS_ERR_OK) {
         return err;
