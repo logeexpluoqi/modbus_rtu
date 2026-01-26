@@ -1,7 +1,7 @@
 /**
  * Author: luoqi
  * Created Date: 2026-01-20 15:37:44
- * Last Modified: 2026-01-22 18:46:52
+ * Last Modified: 2026-01-26 18:58:50
  * Modified By: luoqi at <**@****>
  * Copyright (c) 2026 <*****>
  * Description:
@@ -145,7 +145,7 @@ MbsEC mbsrtu_read_coil(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t coils, 
     if(rtu->cache[0] != (uint8_t)resp_bytes) {
         return MBS_ERR_SLAVE_FAULT;
     }
-    memcpy(data, &rtu->cache[1], resp_bytes);
+    memmove(data, &rtu->cache[1], resp_bytes);
     return MBS_ERR_OK;
 }
 
@@ -178,7 +178,7 @@ MbsEC mbsrtu_read_disc_input(MbsRtu *rtu, uint8_t dev, uint16_t addr, uint16_t i
     if(rtu->cache[0] != (uint8_t)resp_bytes) {
         return MBS_ERR_SLAVE_FAULT;
     }
-    memcpy(data, &rtu->cache[1], resp_bytes);
+    memmove(data, &rtu->cache[1], resp_bytes);
     return MBS_ERR_OK;
 }
 
@@ -455,7 +455,7 @@ MbsEC mbsrtu_ll_read(MbsRtu *rtu, uint8_t addr, MbsFC fc, const uint8_t *req, ui
     rtu->buf[0] = addr;
     rtu->buf[1] = fc;
 
-    memcpy(rtu->buf + 2, req, req_sz);
+    memmove(rtu->buf + 2, req, req_sz);
 
     uint16_t crc = crc16(rtu->buf, req_sz + 2);
     /* append CRC low byte first */
@@ -479,7 +479,7 @@ MbsEC mbsrtu_ll_read(MbsRtu *rtu, uint8_t addr, MbsFC fc, const uint8_t *req, ui
         return rtu->err;
     }
 
-    memcpy(resp, rtu->buf + 2, resp_sz);
+    memmove(resp, rtu->buf + 2, resp_sz);
 
     uint16_t crc_recv = (uint16_t)rtu->buf[resp_sz + 2] | ((uint16_t)rtu->buf[resp_sz + 3] << 8);
     uint16_t crc_calc = crc16(rtu->buf, resp_sz + 2);
